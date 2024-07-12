@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify
+from flask import Blueprint, request, jsonify
 
-app = Flask(__name__)
+find_combinations_bp = Blueprint('find_combinations_bp', __name__)
 
+# Helper Functions
 def time_to_minutes(time_str):
     hours, minutes = map(int, time_str.split(':'))
     return hours * 60 + minutes
@@ -67,11 +68,7 @@ def optimize_combination(combo, all_flights, target):
     
     return best_combo
 
-@app.route("/")
-def index():
-    return "God is dead."
-
-@app.route('/find_combinations', methods=['POST'])
+@find_combinations_bp.route('/find_combinations', methods=['POST'])
 def find_combinations():
     flights = request.json.get('flights')
     
@@ -89,7 +86,6 @@ def find_combinations():
             "total_duration": minutes_to_time_str(total_duration)
         })
     
-    # Sort the result by total_duration in descending order
     result = sorted(result, key=lambda x: time_to_minutes(x["total_duration"]), reverse=True)
     
     return jsonify({
@@ -97,6 +93,3 @@ def find_combinations():
         "total_combinations": len(best_combinations),
         "exact_168_hour_combinations": sum(1 for combo in best_combinations if sum(duration for _, duration in combo) == 168 * 60)
     })
-
-if __name__ == '__main__':
-    app.run(debug=False)
